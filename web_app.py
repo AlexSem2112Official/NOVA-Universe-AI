@@ -1,7 +1,6 @@
 """
 NOVA UNIVERSE TITAN MAX - Web Application
-Полный код без заглушек
-Запуск: python web_app.py
+С автоматическим анти-сном (каждые 5 минут пингует сам себя)
 """
 
 import os
@@ -10,6 +9,7 @@ import json
 import threading
 import time
 import re
+import requests  # Для пинга самого себя
 from datetime import datetime
 from typing import Dict, Any
 from flask import Flask, render_template, request, jsonify, Response, stream_with_context
@@ -215,6 +215,36 @@ JSON:"""
 # Создаём экземпляр агента
 agent = NovaAgent(nova)
 
+# ========== АНТИ-СОН ==========
+def keep_awake():
+    """Фоновый поток, который каждые 5 минут пингует сам себя"""
+    # Получаем публичный URL из переменных окружения
+    public_url = os.environ.get('SELF_URL') or os.environ.get('RENDER_EXTERNAL_URL')
+    if not public_url:
+        print("⚠️ SELF_URL или RENDER_EXTERNAL_URL не заданы. Анти-сон отключен.")
+        return
+
+    health_url = public_url.rstrip('/') + '/health'
+    print(f"🔄 Анти-сон активирован. Пинг {health_url} каждые 5 минут.")
+
+    def ping_loop():
+        while True:
+            time.sleep(300)  # 5 минут
+            try:
+                resp = requests.get(health_url, timeout=10)
+                if resp.status_code == 200:
+                    print(f"✅ Пинг успешен: {resp.status_code}")
+                else:
+                    print(f"⚠️ Пинг вернул: {resp.status_code}")
+            except Exception as e:
+                print(f"❌ Ошибка пинга: {e}")
+
+    thread = threading.Thread(target=ping_loop, daemon=True)
+    thread.start()
+
+# Запускаем анти-сон при старте (в отдельном потоке, чтобы не блокировать запуск)
+threading.Thread(target=keep_awake, daemon=True).start()
+
 # ========== ПУБЛИЧНЫЕ API ==========
 @app.route('/')
 def index():
@@ -245,7 +275,7 @@ def wiki():
 def stats():
     return jsonify(nova.get_stats())
 
-# ========== АГЕНТ (ПОЛНОЦЕННЫЙ) ==========
+# ========== АГЕНТ ==========
 @app.route('/api/agent/task', methods=['POST'])
 def agent_task():
     data = request.get_json()
@@ -389,7 +419,6 @@ def scheduler_add():
     data = request.get_json()
     job_type = data.get('type')
     time_str = data.get('time')
-    # Простейшее добавление
     if job_type == 'daily' and time_str:
         scheduler.add_daily(time_str, lambda: print(f"Scheduled task at {time_str}"))
         return jsonify({'status': 'job added'})

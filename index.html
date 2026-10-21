@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Universe</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000010;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        #frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        /* Сообщение, если сайт запрещает iframe */
+        #fallback {
+            display: none;
+            position: fixed;
+            inset: 0;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+            color: #fff;
+            background: radial-gradient(ellipse at center, #1a0033 0%, #000010 70%, #000 100%);
+        }
+
+        #fallback h1 {
+            font-size: clamp(1.6rem, 5vw, 2.6rem);
+            background: linear-gradient(90deg, #a78bfa, #e0c3fc, #7b2ff7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 14px;
+            letter-spacing: 2px;
+        }
+
+        #fallback p {
+            color: rgba(200, 182, 255, 0.8);
+            max-width: 480px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        #fallback a {
+            display: inline-block;
+            padding: 14px 36px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-decoration: none;
+            color: #fff;
+            background: linear-gradient(135deg, #7b2ff7, #4a00e0);
+            border-radius: 50px;
+            box-shadow: 0 8px 30px rgba(123, 47, 247, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        #fallback a:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(167, 139, 250, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <iframe
+        id="frame"
+        src="https://nova-universe.netlify.app"
+        title="Nova Universe"
+        allow="fullscreen; autoplay; clipboard-write"
+        allowfullscreen
+        referrerpolicy="no-referrer-when-downgrade"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads"
+    ></iframe>
+
+    <div id="fallback">
+        <h1>Nova Universe</h1>
+        <p>Сайт запрещает отображение внутри iframe (политика безопасности X‑Frame‑Options). Откройте его напрямую по кнопке ниже.</p>
+        <a href="https://nova-universe.netlify.app" target="_blank" rel="noopener">
+            Открыть Nova Universe →
+        </a>
+    </div>
+
+    <script>
+        // Проверка: если iframe не загрузился (сайт блокирует встраивание),
+        // показываем fallback. Сработает при ошибке загрузки.
+        const frame = document.getElementById('frame');
+        const fallback = document.getElementById('fallback');
+        let loaded = false;
+
+        frame.addEventListener('load', () => {
+            loaded = true;
+        });
+
+        // Если через 4 секунды iframe так и не отрисовал контент — показываем сообщение
+        setTimeout(() => {
+            if (!loaded) {
+                frame.style.display = 'none';
+                fallback.style.display = 'flex';
+            }
+        }, 4000);
+    </script>
+</body>
+</html>
